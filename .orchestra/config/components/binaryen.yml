@@ -1,0 +1,43 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/create_component.lib.yml", "single_build_component")
+#@ load("/lib/cmake.lib.yml", "cmake", "cmdline_cmake_base_configuration")
+#@ load("/lib/ninja.lib.yml", "ninja")
+#@ load("/lib/shell.lib.yml", "expand_args")
+
+#@ source_url = "https://github.com/WebAssembly/binaryen/archive/b69d3a8.tar.gz"
+#@ gtest_source_url = "https://github.com/google/googletest/archive/e2239ee.tar.gz"
+
+
+#@yaml/text-templated-strings
+---
+#@ def binaryen_args():
+license: LICENSE
+configure: |
+  extract.sh --into "$BUILD_DIR" "(@= source_url @)"
+  extract.sh --into "$BUILD_DIR/third_party/googletest" "(@= gtest_source_url @)"
+  cd "$BUILD_DIR"
+  (@= cmake @) \
+    -GNinja \
+    (@= expand_args(cmdline_cmake_base_configuration(cmake_build_type="Release")) @) \
+    .
+install: |
+  cd "$BUILD_DIR"
+  (@= ninja @) all
+  if [ "$RUN_TESTS" -eq 1 ]; then
+    python check.py wasm-opt wasm-dis crash dylink ctor-eval wasm-metadce wasm-reduce spec lld \
+                    wasm2js validator unit gtest
+  fi
+  (@= ninja @) install
+build_dependencies:
+  - cmake
+  - glibc
+  - host-cxx-toolchain
+dependencies:
+  - host-libcxx
+#@ end
+
+#@overlay/match by=overlay.all, expects=1
+#@overlay/match-child-defaults missing_ok=True
+---
+components:
+  binaryen: #@ single_build_component(**binaryen_args())
