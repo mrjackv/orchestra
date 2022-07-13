@@ -1,0 +1,42 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/create_component.lib.yml", "single_build_component")
+
+#@ source_url = "https://github.com/emscripten-core/emscripten/archive/3.1.15.tar.gz"
+
+
+#@yaml/text-templated-strings
+---
+#@ def emscripten_args():
+license: LICENSE
+configure: |
+  extract.sh --into "$BUILD_DIR" "(@= source_url @)"
+  cd "${BUILD_DIR}"
+  patch -p1 < "${ORCHESTRA_DOTDIR}/patches/emscripten-fix-install.patch"
+install: |
+  cd "$BUILD_DIR"
+  DESTDIR="${TMP_ROOT}${ORCHESTRA_ROOT}/opt/emscripten"
+  DESTDIR="$DESTDIR" make install
+  echo "8b4443a87f5eab5dbb9adb690f9ebed0a9da4bd9" > "$DESTDIR/emscripten-revision.txt"
+  cat <<EOF > "$DESTDIR/.emscripten"
+  import sys
+  import shutil
+  from pathlib import Path
+  emscripten_dir = Path(sys.argv[0]).parent
+  root = emscripten_dir / "../.."
+  NODE_JS = shutil.which("node")
+  LLVM_ROOT = str((root / 'bin').resolve())
+  BINARYEN_ROOT = str(root.resolve())
+  EMSCRIPTEN_ROOT = str(emscripten_dir.resolve())
+  COMPILER_ENGINE = NODE_JS
+  JS_ENGINES = [NODE_JS]
+  EOF
+dependencies:
+  - clang-release
+  - binaryen
+#@ end
+
+#@overlay/match by=overlay.all, expects=1
+#@overlay/match-child-defaults missing_ok=True
+---
+components:
+  emscripten: #@ single_build_component(**emscripten_args())

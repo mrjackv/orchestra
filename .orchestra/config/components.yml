@@ -6,6 +6,7 @@ components: {}
 add_to_path:
   - $ORCHESTRA_ROOT/link-only/bin
   - $ORCHESTRA_ROOT/bin
+  - $ORCHESTRA_ROOT/opt/emscripten
   - $ORCHESTRA_DOTDIR/support
 environment:
   - JOBS: #@ str(datavalue("parallelism"))
