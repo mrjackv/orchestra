@@ -1,0 +1,33 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+#@ load("/lib/cmake.lib.yml", "cmake", "cmdline_cmake_base_configuration")
+#@ load("/lib/create_component.lib.yml", "single_build_component")
+#@ load("/lib/shell.lib.yml", "expand_args")
+
+#@yaml/text-templated-strings
+---
+#@ def revng_wasm_args():
+license: LICENSE.md
+repository: revng
+configure: |
+  cd "$BUILD_DIR";
+  (@= cmake @) \
+    "$SOURCE_DIR" \
+    -GNinja \
+    (@= expand_args(cmdline_cmake_base_configuration(cmake_build_type="Release")) @)
+install: |
+  cmake --build "$BUILD_DIR" ${JOBS:+-j$JOBS}
+  cmake --install "$BUILD_DIR"
+build_dependencies:
+  - cmake
+  - glibc
+  - host-cxx-toolchain
+  - emscripten
+dependencies: []
+#@ end
+
+#@overlay/match by=overlay.all, expects=1
+#@overlay/match-child-defaults missing_ok=True
+---
+components:
+  revng-wasm: #@ single_build_component(**revng_wasm_args())

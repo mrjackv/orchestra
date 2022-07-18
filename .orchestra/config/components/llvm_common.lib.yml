@@ -5,22 +5,30 @@
 
 #@yaml/text-templated-strings
 ---
-#@ def _configure_llvm(cmake_build_type=mandatory, cflags=mandatory, additional_cmake_options=mandatory, source_dir="$SOURCE_DIR"):
+#@ def _configure_llvm(cmake_build_type=mandatory, cflags=mandatory, additional_cmake_options=mandatory, source_dir="$SOURCE_DIR", custom_cmake=None, ldflags=None):
 - |
   mkdir -p "$BUILD_DIR"
   cd "$BUILD_DIR";
+  (@- if custom_cmake: @)
+  (@= custom_cmake @) \
+  (@- else: @)
   (@= cmake @) \
+  (@- end @)
     "(@= source_dir @)/llvm" \
     -GNinja \
     -DCMAKE_BUILD_RPATH="\$ORIGIN/../lib:$ORCHESTRA_ROOT/lib" \
     -DCMAKE_INSTALL_RPATH="$RPATH_PLACEHOLDER/lib" \
     -DCMAKE_BUILD_TYPE="(@= cmake_build_type @)" \
-    -DCMAKE_EXE_LINKER_FLAGS="(@= cflags @)" \
-    -DCMAKE_SHARED_LINKER_FLAGS="(@= cflags @)" \
-    -DCMAKE_MODULE_LINKER_FLAGS="(@= cflags @)" \
+    -DCMAKE_EXE_LINKER_FLAGS="(@= ldflags if ldflags else cflags @)" \
+    -DCMAKE_SHARED_LINKER_FLAGS="(@= ldflags if ldflags else cflags @)" \
+    -DCMAKE_MODULE_LINKER_FLAGS="(@= ldflags if ldflags else cflags @)" \
     -DCMAKE_C_FLAGS="(@= cflags @)" \
     -DCMAKE_CXX_FLAGS="(@= cflags @)" \
-    -DLLVM_TARGETS_TO_BUILD="AArch64;AMDGPU;ARM;Mips;SystemZ;X86;WebAssembly" \
+    (@- if ldflags: @)
+    -DCMAKE_C_LINK_FLAGS="(@= ldflags @)" \
+    -DCMAKE_CXX_LINK_FLAGS="(@= ldflags @)" \
+    (@- end @)
+    -DLLVM_TARGETS_TO_BUILD="AArch64;ARM;Mips;SystemZ;X86;WebAssembly" \
     -DLLVM_INSTALL_UTILS=ON \
     -DLLVM_ENABLE_DUMP=ON \
     -DLLVM_ENABLE_TERMINFO=OFF \

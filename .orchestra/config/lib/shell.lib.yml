@@ -8,6 +8,11 @@
 #@ end
 
 ---
+#@ def join(args_list, delim=" "):
+#@     return delim.join(args_list)
+#@ end
+
+---
 #@ def expand_args(args_list):
 #@   if not args_list:
 #@     return ""

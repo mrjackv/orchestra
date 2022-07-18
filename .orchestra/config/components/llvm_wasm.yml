@@ -1,0 +1,83 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/components/llvm_common.lib.yml", "configure_llvm")
+#@ load("/lib/fn_args.lib.yml", "mandatory")
+#@ load("/lib/ninja.lib.yml", "ninja")
+#@ load("/lib/cmake.lib.yml", "cmake")
+#@ load("/lib/shell.lib.yml", "join")
+
+#@yaml/text-templated-strings
+---
+#@ def llvm_wasm_cmake_opts():
+- -DBUILD_SHARED_LIBS=OFF
+- -DLLVM_ENABLE_ZLIB=OFF
+- -DLLVM_ENABLE_PROJECTS="clang;mlir"
+- -DLLVM_ENABLE_OCAMLDOC=OFF
+- -DLLVM_TABLEGEN=$ORCHESTRA_ROOT/lib64/llvm/llvm/bin/llvm-tblgen
+- -DCLANG_TABLEGEN=$ORCHESTRA_ROOT/lib64/llvm/llvm/bin/clang-tblgen
+- -DLLVM_INCLUDE_TOOLS=ON
+- -DLLVM_INCLUDE_EXAMPLES=OFF
+- -DLLVM_INCLUDE_UTILS=OFF
+- -DLLVM_INCLUDE_TESTS=OFF
+- -DLLVM_BUILD_RUNTIME=OFF
+- -DLLVM_BUILD_TOOLS=OFF
+- -DLLVM_BUILD_UTILS=OFF
+- -DCMAKE_INSTALL_PREFIX="${ORCHESTRA_ROOT}/opt/wasm"
+- -DLLVM_USE_HOST_TOOLS=OFF
+- -DLLVM_ENABLE_THREADS=OFF
+- -DLLVM_BUILD_LLVM_DYLIB=OFF
+- -DCROSS_TOOLCHAIN_FLAGS_NATIVE='-DCMAKE_C_COMPILER=clang;-DCMAKE_CXX_COMPILER=clang++'
+- -Wno-dev
+#@ end
+
+#@ def llvm_wasm_cflags():
+- -O3
+- -I$ORCHESTRA_ROOT/opt/wasm/include
+- -Wno-deprecated-declarations
+- -Wno-deprecated-pragma
+- -Wno-deprecated-enum-enum-conversion
+- -Wno-deprecated-anon-enum-enum-conversion
+- -Wno-deprecated-copy
+- -Wno-ambiguous-reversed-operator
+- -Dwait4=__syscall_wait4
+#@ end
+
+#@ def llvm_wasm_ldflags():
+- -O3
+- --closure 0
+- -s INITIAL_MEMORY=67108864
+- -s ALLOW_MEMORY_GROWTH=1
+- -s EXPORTED_FUNCTIONS=_main,_free,_malloc 
+- -s EXPORTED_RUNTIME_METHODS=FS,allocateUTF8
+- -L$ORCHESTRA_ROOT/opt/wasm/lib
+#@ end
+
+#@yaml/text-templated-strings
+---
+#@ def llvm_wasm_component():
+repository: llvm-project
+license: llvm/LICENSE.TXT
+builds:
+    default:
+      configure: #@ configure_llvm(cmake_build_type="Release", cflags=join(llvm_wasm_cflags()), ldflags=join(llvm_wasm_ldflags()), additional_cmake_options=llvm_wasm_cmake_opts(), source_dir="$SOURCE_DIR", custom_cmake="emcmake cmake")
+      install: |
+        cd "$BUILD_DIR"
+        emmake (@= ninja @) install
+
+        if test "$RUN_TESTS" -eq 1; then
+          (@= ninja @) check-all
+        fi
+      build_dependencies:
+        - llvm
+        - ncurses-wasm
+        - cmake
+        - emscripten
+        - host-cxx-toolchain
+      dependencies: []
+#@ end
+
+#@overlay/match by=overlay.all, expects=1
+#@overlay/match-child-defaults missing_ok=True
+---
+components:
+  llvm-wasm: #@ llvm_wasm_component()

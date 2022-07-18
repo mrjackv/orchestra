@@ -178,6 +178,9 @@ install: |
   rm "${DESTDIR}${ORCHESTRA_ROOT}/lib/llvm/clang-release/lib/libc++.so" || true
   echo 'INPUT(libc++.so.1 -lc++abi -lpthread)' > "${DESTDIR}${ORCHESTRA_ROOT}/lib/llvm/clang-release/lib/libc++.so"
 
+  # Copy clang-tblgen
+  cp -a "bin/clang-tblgen" "${DESTDIR}${ORCHESTRA_ROOT}/lib/llvm/clang-release/bin"
+
   # Symlink to /lib/llvm/clang-release/bin/* to /bin
   for EXECUTABLE in "${DESTDIR}${ORCHESTRA_ROOT}/lib/llvm/clang-release/bin/"*; do
     ln \

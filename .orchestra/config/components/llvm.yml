@@ -46,6 +46,15 @@ builds:
             "${DESTDIR}${ORCHESTRA_ROOT}/bin-tmp"
         done
 
+        # Preserve binaries
+        mkdir -p "${DESTDIR}${ORCHESTRA_ROOT}/lib64/llvm/llvm/bin"
+        mv \
+          "${DESTDIR}${ORCHESTRA_ROOT}/bin/"* \
+          "${DESTDIR}${ORCHESTRA_ROOT}/lib64/llvm/llvm/bin"
+        cp -a \
+          bin/clang-tblgen \
+          "${DESTDIR}${ORCHESTRA_ROOT}/lib64/llvm/llvm/bin"
+
         rm -rf "${DESTDIR}${ORCHESTRA_ROOT}/bin"
 
         mv \
