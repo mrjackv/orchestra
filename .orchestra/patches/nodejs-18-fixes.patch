@@ -1,0 +1,33 @@
+diff --git a/src/node_credentials.cc b/src/node_credentials.cc
+index 115c2fc8..42a209ca 100644
+--- a/src/node_credentials.cc
++++ b/src/node_credentials.cc
+@@ -13,7 +13,6 @@
+ #endif
+ #ifdef __linux__
+ #include <linux/capability.h>
+-#include <sys/auxv.h>
+ #include <sys/syscall.h>
+ #endif  // __linux__
+ 
+@@ -37,7 +36,7 @@ bool linux_at_secure() {
+   // we can guarantee that this function is always usable
+   // and returns the correct value,  e.g. even in static
+   // initialization code in other files.
+-#ifdef __linux__
++#if false
+   static const bool value = getauxval(AT_SECURE);
+   return value;
+ #else
+diff --git a/test/cctest/test_crypto_clienthello.cc b/test/cctest/test_crypto_clienthello.cc
+index 60a8e294..c551461d 100644
+--- a/test/cctest/test_crypto_clienthello.cc
++++ b/test/cctest/test_crypto_clienthello.cc
+@@ -20,7 +20,6 @@
+ #include <unistd.h>
+ #if defined(_SC_PAGE_SIZE) && defined(PROT_NONE) && defined(PROT_READ) &&      \
+     defined(PROT_WRITE)
+-#define USE_MPROTECT
+ #endif
+ #elif defined(_WIN32) && defined(_MSC_VER)
+ #include <Windows.h>
