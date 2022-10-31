@@ -7,7 +7,7 @@ mkdir -p "${DESTDIR}${ORCHESTRA_ROOT}/revng/root"
 
 cd "$ORCHESTRA_ROOT"
 
-orc inspect component dependencies --runtime revng-distributable | \
+orc inspect component dependencies --installed --runtime revng-distributable | \
 grep -v '^glibc$' | \
 while IFS= read -r component; do
   orc inspect component installed-files "${component}"
