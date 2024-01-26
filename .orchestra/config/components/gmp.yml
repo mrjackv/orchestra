@@ -11,6 +11,7 @@ license: COPYING
 configure: |
   mkdir -p "$BUILD_DIR"
   extract.sh --into "$BUILD_DIR" "(@= source_url @)"
+  true
   cd "$BUILD_DIR" && ./configure \
     --prefix="$ORCHESTRA_ROOT" \
     --enable-shared=no \
