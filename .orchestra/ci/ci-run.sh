@@ -224,7 +224,7 @@ fi
 ERRORS=0
 for TARGET_COMPONENT in $TARGET_COMPONENTS; do
     log "Building target component $TARGET_COMPONENT"
-    if ! orc --quiet install \
+    if ! orc install \
         --discard-build-directories \
         --lfs-retries "$LFS_RETRIES" \
         "$BUILD_MODE" \
