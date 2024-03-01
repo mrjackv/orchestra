@@ -44,9 +44,9 @@ install: |
   # Install packages needed for building
   export ORCHESTRA_NODE_CACHE="$BUILD_DIR/.cache:$ORCHESTRA_NODE_CACHE"
 
-  npm --global \
-      --prefix="${DESTDIR}${ORCHESTRA_ROOT}" \
-      install yarn @yarnpkg/lockfile
+  "$JS_DIR/npm" --global \
+                --prefix="${DESTDIR}${ORCHESTRA_ROOT}" \
+                install yarn @yarnpkg/lockfile
 
   # Overwrite yarn with our wrapper
   rm "${DESTDIR}${ORCHESTRA_ROOT}/bin/"{yarn,yarnpkg}
