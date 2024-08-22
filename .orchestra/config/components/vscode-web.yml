@@ -40,6 +40,7 @@ builds:
 
     install: |
       cd "$BUILD_DIR/vscode"
+
       rsync -aq \
         --exclude-from=<(git -C "$SOURCE_DIR" ls-files --exclude-standard -oi --directory) \
         "$SOURCE_DIR/" .
@@ -63,6 +64,7 @@ builds:
       #   target to bundle with the build js files (this will be accounted for when building
       #   targets using electron)
       npm_config_nodedir="$ORCHESTRA_ROOT" \
+      VSCODE_SKIP_NODE_VERSION_CHECK=1 \
       ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
         yarn
