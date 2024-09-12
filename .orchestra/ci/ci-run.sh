@@ -357,7 +357,7 @@ else
     log "Skipping binary archives push (PUSH_BINARY_ARCHIVES='${PUSH_BINARY_ARCHIVES:-}', PUSH_CHANGES='${PUSH_CHANGES:-}')"
 fi
 
-if [[ "${#BINARY_ARCHIVES_PATH_CHANGES[@]}" -gt 0 ]]; then
+if [[ "${#BINARY_ARCHIVES_PATH_CHANGES[@]}" -gt 0 || true ]]; then
     HOOK_RC=0
     # This must be done this way since we can't pass arrays between processes
     ( source "$DIR/binary-archives-hook.sh" ) || HOOK_RC=$?

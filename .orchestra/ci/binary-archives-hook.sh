@@ -85,6 +85,7 @@ fi
 # Run the PUSH_HOOK_SCRIPT, if present
 #
 
+set -x
 if [[ -n "${PUSH_HOOK_SCRIPT:-}" ]]; then
     ( eval "$PUSH_HOOK_SCRIPT" )
 fi
