@@ -17,6 +17,7 @@
         "window.menuBarVisibility": "classic",
         "editor.foldingMaximumRegions": 65000,
         "files.autoSave": "off",
+        "keyboard.layout": "us",
         "editor.colorTheme": "revng",
         "workbench.colorTheme": "revng",
         "revng.general.profiles": [
