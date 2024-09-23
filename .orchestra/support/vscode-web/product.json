@@ -28,7 +28,6 @@
             }
         ]
     },
-    "storageDefaults": [],
     "extensionsPrefix": "/static/extensions",
     "builtinExtensions": [
         "configuration-editing",
