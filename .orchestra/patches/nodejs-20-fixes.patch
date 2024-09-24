@@ -50,8 +50,8 @@
  
 +common.skip('skip');
 +
- // Skip on OS X Mojave. https://github.com/nodejs/node/issues/21679
- if (common.isOSX)
+ // Skip on macOS Mojave. https://github.com/nodejs/node/issues/21679
+ if (common.isMacOS)
    common.skip('macOS may allow ordinary processes to use any port');
 --- i/test/parallel/test-os.js
 +++ w/test/parallel/test-os.js
@@ -71,3 +71,68 @@
  // On IBMi, os.uptime() returns 'undefined'
  if (!common.isIBMi) {
    const uptime = os.uptime();
+--- a/test/parallel/test-process-euid-egid.js
++++ b/test/parallel/test-process-euid-egid.js
+@@ -22,13 +22,6 @@ assert.throws(() => {
+     'Received an instance of Object'
+ });
+ 
+-assert.throws(() => {
+-  process.seteuid('fhqwhgadshgnsdhjsdbkhsdabkfabkveyb');
+-}, {
+-  code: 'ERR_UNKNOWN_CREDENTIAL',
+-  message: 'User identifier does not exist: fhqwhgadshgnsdhjsdbkhsdabkfabkveyb'
+-});
+-
+ // IBMi does not support below operations.
+ if (common.isIBMi)
+   return;
+--- a/test/parallel/test-process-initgroups.js
++++ b/test/parallel/test-process-initgroups.js
+@@ -41,17 +41,3 @@ if (!common.isMainThread)
+     }
+   );
+ });
+-
+-assert.throws(
+-  () => {
+-    process.initgroups(
+-      'fhqwhgadshgnsdhjsdbkhsdabkfabkveyb',
+-      'fhqwhgadshgnsdhjsdbkhsdabkfabkveyb'
+-    );
+-  },
+-  {
+-    code: 'ERR_UNKNOWN_CREDENTIAL',
+-    message:
+-      'Group identifier does not exist: fhqwhgadshgnsdhjsdbkhsdabkfabkveyb'
+-  }
+-);
+--- a/test/parallel/test-process-setgroups.js
++++ b/test/parallel/test-process-setgroups.js
+@@ -46,10 +46,3 @@ assert.throws(
+     }
+   );
+ });
+-
+-assert.throws(() => {
+-  process.setgroups([1, 'fhqwhgadshgnsdhjsdbkhsdabkfabkveyb']);
+-}, {
+-  code: 'ERR_UNKNOWN_CREDENTIAL',
+-  message: 'Group identifier does not exist: fhqwhgadshgnsdhjsdbkhsdabkfabkveyb'
+-});
+--- a/test/parallel/test-process-uid-gid.js
++++ b/test/parallel/test-process-uid-gid.js
+@@ -44,13 +44,6 @@ assert.throws(() => {
+     'number or string. Received an instance of Object'
+ });
+ 
+-assert.throws(() => {
+-  process.setuid('fhqwhgadshgnsdhjsdbkhsdabkfabkveyb');
+-}, {
+-  code: 'ERR_UNKNOWN_CREDENTIAL',
+-  message: 'User identifier does not exist: fhqwhgadshgnsdhjsdbkhsdabkfabkveyb'
+-});
+-
+ // Passing -0 shouldn't crash the process
+ // Refs: https://github.com/nodejs/node/issues/32750
+ // And neither should values exceeding 2 ** 31 - 1.
