@@ -254,7 +254,7 @@ def main():
     # Setup output-dir, make it so that it's deleted at the end unless the user
     # specifies --no-upload
     if args.output_dir is not None:
-        workdir = args.output_dir
+        workdir = args.output_dir.resolve()
     else:
         workdir = Path(mkdtemp(dir=scratch_dir))
         atexit.register(rmtree, workdir, ignore_errors=True)
