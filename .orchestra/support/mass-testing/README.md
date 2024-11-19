@@ -48,6 +48,16 @@ The two main parameters that control the behavior:
   Requires `p7zip`
 * `windows_iso`: extract files from a windows installation iso. Requires
   [`wimlib`](https://wimlib.net/) and `p7zip` to be installed.
+* `apple`: extract files from macOS (X) ISOs and `.ipsw` files.
+
+  Requires:
+  * 7zip (https://www.7-zip.org)
+  * xar (https://github.com/apple-oss-distributions/xar)
+  * pbzx (https://github.com/NiklasRosenstein/pbzx)
+  * ipsw (https://github.com/blacktop/ipsw/)
+  * apfs-fuse (https://github.com/sgan81/apfs-fuse)
+
+  to be installed and present on `PATH`
 
 #### Currently implemented `filter`s
 
