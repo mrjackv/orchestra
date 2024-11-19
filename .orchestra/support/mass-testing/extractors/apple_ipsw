@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+set -x
+
+# Extract Apple's ipsw files
+
+INPUT_FILE="$(realpath "$1")"
+OUTPUT_DIR="$(realpath "$2")"
+
+if [[ "$INPUT_FILE" = *".iso" ]]; then
+    # TODO: maybe the errors here cause errors downstream?
+    7z x -o"$OUTPUT_DIR" "$INPUT_FILE" || true
+else
+    7z x -o"$OUTPUT_DIR" "$INPUT_FILE"
+fi
+
+if [ -f "$OUTPUT_DIR/disk image.hfs" ]; then
+    mkdir "$OUTPUT_DIR/disk image.hfs_contents"
+    7z -o"$OUTPUT_DIR/disk image.hfs_contents" x "$OUTPUT_DIR/disk image.hfs"
+fi
+
+find "$OUTPUT_DIR" -name "*.dmg.aea" | \
+while IFS= read -r AEA; do
+    ipsw fw aea "$AEA"
+    rm "$AEA"
+done
+
+while true; do
+    SHOULD_BREAK=1
+    while IFS= read -r DMG; do
+        if [[ "$(basename "$DMG")" = "._"* ]]; then
+            continue
+        fi
+        if [[ ! -d "${DMG}_contents" ]]; then
+            SHOULD_BREAK=0
+        else
+            continue
+        fi
+
+        mkdir "${DMG}_contents"
+        FILE_CONTENT=$(file -b "$DMG")
+        if [[ "$FILE_CONTENT" = "Apple File System"* ]]; then
+            mkdir "$DMG.mount"
+            apfs-fuse "$DMG" "$DMG.mount"
+            cp -raT "$DMG.mount/root" "${DMG}_contents"
+            umount "$DMG.mount"
+            rm -rf "$DMG.mount"
+        elif [[ "$FILE_CONTENT" = "zlib compressed data" ]]; then
+            7z x -o"${DMG}_contents" "$DMG"
+        elif [[ "$FILE_CONTENT" = "xar archive"* ]]; then
+            xar -C "${DMG}_contents" -xf "$DMG"
+        elif [[ "$FILE_CONTENT" = "data" ]]; then
+            continue
+        else
+            mkdir "$DMG.tmp"
+            7z -o"$DMG.tmp" x "$DMG" 3_Apple_APFS
+            mkdir "$DMG.tmp/mount"
+            apfs-fuse "$DMG.tmp/3_Apple_APFS" "$DMG.tmp/mount"
+            cp -raT "$DMG.tmp/mount/root" "${DMG}_contents"
+            umount "$DMG.tmp/mount"
+            rm -rf "$DMG.tmp"
+        fi
+    done < <(find "$OUTPUT_DIR" -type f -name "*.dmg")
+    if [ "$SHOULD_BREAK" -eq 1 ]; then
+        break
+    fi
+done
+
+
+find "$OUTPUT_DIR" -type f -name "*.pkg" | \
+while IFS= read -r PKG; do
+    if ! xar -tf "$PKG" | grep -q Payload; then
+        continue
+    fi
+    mkdir "${PKG}_tmp" "${PKG}_contents"
+    # TODO: drop xar with 7z
+    xar -C "${PKG}_tmp" -xf "$PKG" Payload || true
+    # Check if the file begins with 'pbzx'
+    if [ "$(head -c4 "${PKG}_tmp/Payload" | base64)" = "cGJ6eA==" ]; then
+        pbzx -n "${PKG}_tmp/Payload" > "${PKG}_tmp/Payload.cpio"
+    else
+        zcat "${PKG}_tmp/Payload" > "${PKG}_tmp/Payload.cpio"
+    fi
+    echo 'u' | 7z -o"${PKG}_contents" x "${PKG}_tmp/Payload.cpio"
+    rm -rf "${PKG}_tmp"
+done
