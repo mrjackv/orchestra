@@ -31,13 +31,11 @@ builds:
         --enable-shared \
         --enable-ipv6 \
         --with-ensurepip=install \
-        --without-mimalloc \
         --with-lto \
         --with-readline \
         --with-system-ffi \
         --with-system-expat \
-        --without-static-libpython \
-        CC="gcc -ljemalloc"
+        --without-static-libpython
 
       grep -v HAVE_SYS_AUXV_H pyconfig.h > pyconfig.h.tmp
       mv pyconfig.h.tmp pyconfig.h
