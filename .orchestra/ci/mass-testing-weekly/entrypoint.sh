@@ -23,6 +23,7 @@ orc update --no-config
 POLLER_PID=$!
 
 # Run the actual mass-testing
+export MASS_TESTING_NO_UPLOAD_REGRESSION=1
 RC=0
 orc --quiet install mass-testing || RC=$?
 
@@ -50,14 +51,29 @@ eval "$(ssh-agent -s)"
 base64 -d <<< "$PUSH_SSH_KEY" | tr -d '\r' | ssh-add -
 
 # Copy just the report to the history subdirectory
+FILTER_FILE=$(mktemp)
+cat - > "$FILTER_FILE" <<EOF
+R **
++ /inputs/***
++ /build/***
++ /report/***
+- *
+EOF
+
 rsync -qaz --stats \
-  root/share/mass-testing-reports/all/ \
-  "$RSYNC_TARGET:/history/$TIMESTAMP/"
+  --delay-updates \
+  --delete-after \
+  --filter ". $FILTER_FILE" \
+  build/mass-testing/default/ \
+  "$RSYNC_TARGET:/history/$TIMESTAMP-develop/"
+
+echo "Mass-testing finished, it's available at this url:"
+echo "https://mass.rev.ng/history/$TIMESTAMP-develop/"
+exit 0
 
 # Fetch back via rsync all the 'main.db' files under '/history'. This is needed
 # to create the file 'aggregated.json' which aggregates the historical data of
 # mass-testing.
-FILTER_FILE=$(mktemp)
 TEMP_WORKDIR=$(mktemp -d)
 TEMP_FILE=$(mktemp)
 cat - > "$FILTER_FILE" <<EOF

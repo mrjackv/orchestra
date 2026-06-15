@@ -10,7 +10,7 @@ binary_archives:
 
 #@overlay/replace
 branches:
-  - master
+  - develop
 
 #@overlay/replace
 build_from_source:
