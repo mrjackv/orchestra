@@ -1,0 +1,19 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:template", "template")
+#@ load("/lib/pip.lib.yml", "pip_package")
+
+#@ def params():
+name: revng-studio-tests-python-dependencies
+dependencies:
+- revng-python-dependencies
+extra_env: CXX="${ORCHESTRA_ROOT}/link-only/bin/g++"
+requirements: |-
+  playwright==1.65.1
+  https://github.com/beefjelly/ffmpeg-python/archive/d1c17eb53ff1b789d851abf466d6aeab25d1405b.tar.gz
+#@ end
+
+#@overlay/match by=overlay.all, expects=1
+#@overlay/match-child-defaults missing_ok=True
+---
+components:
+  _: #@ template.replace(pip_package(**params()))
